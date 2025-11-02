@@ -1,0 +1,173 @@
+
+# SQL Practice Questions Part 2
+
+Here are 50 more SQL practice questions to further test your SQL knowledge.
+
+---
+
+# Section 8: Advanced Joins
+
+**Table: Employees**
+
+| EmployeeID | FirstName | LastName  | ManagerID |
+|------------|-----------|-----------|-----------|
+| 1          | John      | Doe       | 3         |
+| 2          | Jane      | Smith     | 3         |
+| 3          | Peter     | Jones     | NULL      |
+| 4          | Mary      | Williams  | 1         |
+
+**Questions:**
+
+26. **SELF JOIN:** Write a query to list each employee and their manager's name. The result should have two columns: `EmployeeName` and `ManagerName`.
+
+**Table: Projects**
+
+| ProjectID | ProjectName     |
+|-----------|-----------------|
+| 1         | Database Upgrade|
+| 2         | Website Redesign|
+
+**Table: EmployeeProjects**
+
+| EmployeeID | ProjectID |
+|------------|-----------|
+| 1          | 1         |
+| 2          | 2         |
+| 4          | 1         |
+
+27. **Multi-table JOIN:** Write a query to list the `FirstName` of employees who are working on the 'Database Upgrade' project.
+
+---
+
+# Section 9: Advanced GROUP BY and Aggregation
+
+**Table: Sales**
+
+| SaleID | ProductID | SaleDate   | Amount |
+|--------|-----------|------------|--------|
+| 1      | 1         | 2025-10-01 | 100    |
+| 2      | 1         | 2025-10-01 | 150    |
+| 3      | 2         | 2025-10-02 | 200    |
+| 4      | 2         | 2025-10-03 | 250    |
+| 5      | 1         | 2025-10-03 | 120    |
+
+**Questions:**
+
+28. Write a query to find the total sales amount for each day.
+29. Write a query to find the number of sales for each product.
+30. Write a query to find the average sale amount for each product, but only for products that have more than one sale.
+
+---
+
+# Section 10: Window Functions
+
+**Table: EmployeeSalaries**
+
+| EmployeeID | Department | Salary |
+|------------|------------|--------|
+| 1          | IT         | 70000  |
+| 2          | IT         | 80000  |
+| 3          | Sales      | 60000  |
+| 4          | Sales      | 65000  |
+| 5          | IT         | 72000  |
+
+**Questions:**
+
+31. **RANK():** Write a query to rank employees in each department based on their salary (highest salary first).
+32. **LEAD() and LAG():** Write a query to show the salary of the next and previous employee in the same department, ordered by salary.
+33. **ROW_NUMBER():** Write a query to assign a unique row number to each employee within their department, ordered by `EmployeeID`.
+
+---
+
+# Section 11: Common Table Expressions (CTEs)
+
+**Questions:**
+
+34. Using the `EmployeeSalaries` and `Employees` tables, write a query with a CTE to first find the average salary for the 'IT' department, and then list all employees in that department who earn above the average.
+
+---
+
+# Section 12: More Conditional Logic
+
+**Table: Students**
+
+| StudentID | StudentName | Score |
+|-----------|-------------|-------|
+| 1         | Alice       | 85    |
+| 2         | Bob         | 92    |
+| 3         | Charlie     | 78    |
+| 4         | David       | 64    |
+
+**Questions:**
+
+35. **CASE:** Write a query to assign grades to students based on their score:
+    *   'A' for Score >= 90
+    *   'B' for Score >= 80
+    *   'C' for Score >= 70
+    *   'D' for Score >= 60
+    *   'F' for Score < 60
+
+---
+
+# Section 13: Data Manipulation and Cleaning
+
+**Table: Contacts**
+
+| ContactID | Name              | Phone          |
+|-----------|-------------------|----------------|
+| 1         | John Doe          | 123-456-7890   |
+| 2         | Jane Smith        | (987) 654-3210 |
+| 3         | Peter Jones       | 555.123.4567   |
+
+**Questions:**
+
+36. Write a query to standardize the phone numbers by removing all non-numeric characters.
+37. Write a query to split the `Name` column into `FirstName` and `LastName` columns.
+
+---
+
+# Section 14: More Practical Scenarios
+
+38. Find the second highest salary from the `EmployeeSalaries` table.
+39. Find all employees who do not have a manager.
+40. Find all departments that have more than 2 employees.
+41. Find the products that have never been sold.
+42. Find the customers who have placed an order on more than one day.
+43. Find the month with the highest total sales amount.
+44. For each employee, find their hire date and the hire date of the employee hired just before them.
+45. Find the top 3 most profitable products (assuming price - cost, you can create a `Products` table with `Cost` column).
+46. Find the percentage of total sales for each product.
+47. Find the cumulative sales amount by date.
+48. Find the employees who have the same manager.
+49. Find the customers who have bought all products.
+50. You are asked to create a report of the top 5 employees who have made the most sales (in terms of amount). The report should contain the employee's name, their total sales amount, and their rank.
+
+... and 25 more questions to reach 50.
+
+51. Find the average salary of employees for each department, and also show the total number of employees in each department.
+52. List the names of customers who have not placed any orders.
+53. Find the products that have been ordered more than 10 times.
+54. Get the names of employees who are also managers.
+55. Find the total revenue for each month.
+56. List the customers who have ordered products from more than one category.
+57. Find the employees who have been hired in the last year.
+58. Determine the rank of each product based on its price in descending order.
+59. Find the departments where the average salary is greater than the overall average salary.
+60. List the products that were sold on the same day as 'Chai'.
+61. Find the manager with the most employees reporting to them.
+62. Get the names of customers who have the same first name as any of the employees.
+63. Find the products that have a price higher than the average price of all products in the same category.
+64. List the employees who have a salary that is within the range of the 3rd and 5th highest salaries in the company.
+65. Find the customers who have made a purchase every month for the last 6 months.
+66. Identify the products that are always sold together.
+67. Find the employee who has the longest tenure in the company.
+68. List the top 3 busiest months in terms of the number of orders.
+69. Find the customers who have a total purchase amount greater than the average purchase amount of all customers.
+70. Get the names of employees who have the same last name.
+71. Find the products that have been sold to every customer.
+72. List the departments that have at least one employee with a salary over 100,000.
+73. Find the customers who have changed their shipping address.
+74. Identify the employees who have never been assigned to a project.
+75. Find the products that have a seasonal selling pattern (e.g., sell more in summer than winter).
+
+This concludes the second set of practice questions.
