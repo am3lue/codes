@@ -144,5 +144,29 @@ INSERT INTO Customers (CustomerID, CustomerName, ContactName, Country) VALUES
 (4, 'Around the Horn', 'Thomas Hardy', 'UK'),
 (5, 'Berglunds snabbköp', 'Christina Berglund', 'Sweden');
 
+-- Creating a table Named Orders with Relevant Columns
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    OrderDate DATE,
+    TotalAmount DECIMAL(10, 2)
+);
+
+--------------- UPDATE AND DELETE QUERIES-----------------
+
+
 -- Updating the Salary of an Employee
 UPDATE Employees SET Salary = 65000 WHERE EmployeeID = 2;   
+
+-- Deleting a Product from the Products Table
+DELETE FROM Products WHERE ProductID = 3;
+
+
+
+------------------- JOINS QUERIES ----------------
+
+
+-- Query to get all Employees along with their Departments (Inner Join Example)
+SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
+FROM Employees
+INNER JOIN Departments ON Employees.Department = Departments.DepartmentID;
