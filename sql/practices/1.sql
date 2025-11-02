@@ -170,3 +170,8 @@ DELETE FROM Products WHERE ProductID = 3;
 SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
 FROM Employees
 INNER JOIN Departments ON Employees.Department = Departments.DepartmentID;
+
+-- Query to get all Employees and their Departments, including those without a Department (Left Join Example)
+SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
+FROM Employees
+LEFT JOIN Departments ON Employees.Department = Departments.DepartmentID;
