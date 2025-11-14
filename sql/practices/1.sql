@@ -175,3 +175,4 @@ INNER JOIN Departments ON Employees.Department = Departments.DepartmentID;
 SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
 FROM Employees
 LEFT JOIN Departments ON Employees.Department = Departments.DepartmentID;
+

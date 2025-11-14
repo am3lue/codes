@@ -1,0 +1,69 @@
+1,marcella cole,1983,NULL
+2,Lisa Millinus,1891 1950
+
+
+table 1    >>>>   oder_ID Customer_ID Oder_date Amount
+table 2    >>>>   Customer_ID oder_ID City
+
+customer who have palced orderd
+  ->outer join  x
+
+all customers with oders if available
+  ->outer join   
+
+
+all oders with customers info if available
+  -> inner join  
+
+
+all customers and all oredrs
+  ->full outer join  v
+
+all possible combinations
+  ->cross join
+
+
+find customers in same city
+  ->select all
+
+
+  cross join
+  inner join
+  outer join
+  full outer
+
+
+
+  customer table >>>  customer_ID Customer_Name City
+  Oedrs table    >>>  oder_ID    Customer_ID   Oder_date   Amount
+  products table >>>  Product_ID  Product_name  price
+  Oder details table >>> oder_ID  Product_ID Quantity
+
+  qns : 
+  list all customers who have placed at least one along with their orders ids and orders amounts
+    ->
+  
+  find all customers and their oders, If a customer has not placed any order, show NULL in the place of order details
+    ->
+  
+  Retrieve all oders and the customer who placed them. if Oder does not belong to a valid customer(customer ID not in Customer Table), still display the oder with null for customers table
+    ->
+  
+  Prepare a report showing all customers and oderd,Show Null where a custmer dosent have an oder or where an oder dosent match any customer
+  
+  Display the customerName, Product_name and Quantity purchased for eache order
+  
+  Find all pairs of customers living in the same city (Exclude self-pairing)
+  
+  GEnerate all possible combinations of customers and products(useful to see which products can be marketed to which customers)
+  
+  Find customers who have not palced any order yet
+  
+  
+  
+  
+  
+  
+  
+  
+  
