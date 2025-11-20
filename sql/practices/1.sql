@@ -162,9 +162,7 @@ UPDATE Employees SET Salary = 65000 WHERE EmployeeID = 2;
 DELETE FROM Products WHERE ProductID = 3;
 
 
-
 ------------------- JOINS QUERIES ----------------
-
 
 -- Query to get all Employees along with their Departments (Inner Join Example)
 SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
@@ -176,3 +174,93 @@ SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
 FROM Employees
 LEFT JOIN Departments ON Employees.Department = Departments.DepartmentID;
 
+-- Query to get all Departments and the Employees inside them, including Departments with no Employees (Right Join Example)
+SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
+FROM Employees
+RIGHT JOIN Departments ON Employees.Department = Departments.DepartmentID;
+
+-- Query to get all Employees and Departments, even if they don’t match (Full Outer Join Example)
+-- (Note: FULL JOIN may not be supported in MySQL)
+SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
+FROM Employees
+FULL OUTER JOIN Departments ON Employees.Department = Departments.DepartmentID;
+
+-- Query to show all possible combinations of Employees and Departments (Cross Join Example)
+SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
+FROM Employees
+CROSS JOIN Departments;
+
+
+------------------- ALTER TABLE COMMANDS ----------------
+
+-- Add a new column to a table
+ALTER TABLE Employees
+ADD Email VARCHAR(100);
+
+-- Add multiple columns at once
+ALTER TABLE Employees
+ADD (
+    DateOfBirth DATE,
+    Salary DECIMAL(10,2)
+);
+
+-- Modify datatype of an existing column
+ALTER TABLE Employees
+MODIFY COLUMN Salary DECIMAL(12,2);
+
+-- Rename a column
+ALTER TABLE Employees
+RENAME COLUMN FirstName TO FName;
+
+-- Change column name + datatype (MySQL)
+ALTER TABLE Employees
+CHANGE LastName LastName VARCHAR(200);
+
+-- Drop (delete) a column
+ALTER TABLE Employees
+DROP COLUMN Email;
+
+-- Rename a table
+ALTER TABLE Employees
+RENAME TO Staff;
+
+-- Add a primary key
+ALTER TABLE Departments
+ADD PRIMARY KEY (DepartmentID);
+
+-- Drop a primary key
+ALTER TABLE Departments
+DROP PRIMARY KEY;
+
+-- Add a foreign key
+ALTER TABLE Employees
+ADD CONSTRAINT fk_department
+FOREIGN KEY (Department) REFERENCES Departments(DepartmentID);
+
+-- Drop a foreign key
+ALTER TABLE Employees
+DROP FOREIGN KEY fk_department;
+
+-- Add a unique constraint
+ALTER TABLE Employees
+ADD CONSTRAINT unique_email UNIQUE (Email);
+
+-- Drop a unique constraint
+ALTER TABLE Employees
+DROP INDEX unique_email;
+
+-- Set a default value
+ALTER TABLE Employees
+ALTER COLUMN Salary SET DEFAULT 0;
+
+-- Drop a default value
+ALTER TABLE Employees
+ALTER COLUMN Salary DROP DEFAULT;
+
+-- Add NOT NULL constraint
+ALTER TABLE Employees
+MODIFY COLUMN FirstName VARCHAR(100) NOT NULL;
+
+-- Remove NOT NULL constraint
+ALTER TABLE Employees
+MODIFY COLUMN FirstName VARCHAR(100) NULL;
