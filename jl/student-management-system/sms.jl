@@ -28,7 +28,7 @@ function st_add(st_name, st_age, st_grade)
         write(file,old_data* "\n" * "$st_name :: $st_age :: $st_grade") #merges the old data wid the new
     end
 
-    print("Well Student $st_name Is Aded To the Database")
+    print("Well Student $st_name Is Added To the Database")
 end
 
 function st_view()
@@ -37,7 +37,7 @@ function st_view()
     for i in data
         printstyled(i, color= :green) # this itterate from the data and finally prints out everything
     end
-    println("<========================================")
+    println("\n<========================================")
 end
 
 function st_search(target)
