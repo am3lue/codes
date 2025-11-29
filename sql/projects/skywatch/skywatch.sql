@@ -174,3 +174,7 @@ INSERT INTO Stations (station_id, station_name, owner_name, owner_phone) VALUES
 (98, 'Ludewa Valley Station', 'Edwin Mbwambo', 1098),
 (99, 'Songea Plains Station', 'Patrick Mhando', 1099),
 (100,'Tunduru Southern Station', 'Rachel Mpanju', 1100);
+
+UPDATE Stations
+SET owner_phone = 1000 + station_id
+WHERE station_id BETWEEN 1 AND 100;
