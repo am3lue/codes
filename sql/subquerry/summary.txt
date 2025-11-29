@@ -1,0 +1,108 @@
+well the sub querry is like making functions 
+==> is taking data due to a sertain code
+
+types of sub querry
+ > single row 
+    
+    # returns only single data column or row
+    # commonly used in checking conditions if are met (<,>,=)
+
+    eg
+        sql ```
+                SELECT * FROM Employees
+                    WHERE
+                    salary = (SELECT MAX(salary) FROM Employees);
+            ```
+
+ > Multiple row
+    
+    # returns multiple data rows
+    # used in operators like IN ANY ALL ON 
+
+    eg
+        sql```
+            SELECT EmpName FROM Employees
+                WHERE DepartmentID IN (
+                    SELECT DepartmentID FROM Department
+                        WHERE DepartmentName = 'HR' OR DepartmentName = 'Finance'
+                );
+        ```
+
+ > Multiple column
+    # Returns multiple rows and multiple columns
+    # Typically used in WHERE clause with operators like IN
+
+    eg 
+        ```sql
+                SELECT EmpName FROM Employees
+                    WHERE 
+                    (DepartmentID, salary) IN (
+                        SELECT DepartmentID, MAX(salary) FROM Department
+                    );
+        ```
+
+        ```sql
+            SELECT EmpName FROM Employees
+                WHERE DepartmentID = (
+                    SELECT DepartmentID FROM Employees
+                        WHERE 
+                        EmpName = 'Jane Doe'
+                );
+        ```
+
+        ```sql
+            SELECT EmpName FROM Employees
+                WHERE jobTitle = (
+                    SELECT jobTitle FROM Employees
+                        WHERE 
+                        DepartmentID = 10
+                );
+        ```
+
+        ```sql       
+                --well ANY is mostly from the qn provided so just look carefuly
+                SELECT EmpName FROM Employees
+                    WHERE salary > ANY (
+                        SELECT MAX(salary) FROM  Employees
+                        WHERE
+                        DepartmentID = 20
+                    );
+        ```
+
+        ```sql       
+                --well ALL is mostly from the qn provided so just look carefuly
+                SELECT EmpName FROM Employees
+                    WHERE salary > ALL (
+                        SELECT MAX(salary) FROM  Employees
+                        WHERE
+                        DepartmentID = 20
+                    );
+        ```
+
+
+
+querry of the data retrival
+joins
+subqueries
+having,  group by
+
+
+DEpt tavle
+
+primary key DepartmentID
+
+DepartmentID DepartmentName location
+1            HR              New York
+2            IT              San Francisco
+3            Finance         Chicago
+
+EmployeeID EmployeeName Salary DepertmentID
+1           John smith
+2           Jane Doe
+3           Emily Davis
+4
+5
+
+insrert into dept values (1, 'HR', 'New York'),
+                         (2, 'IT', 'San Francisco')
+                         (3, Finance)

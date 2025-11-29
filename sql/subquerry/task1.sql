@@ -1,0 +1,6 @@
+CREATE DATABASE LPU
+
+use LPU
+
+CREATE TABLE Employees
+    (EmpID, Empname, salary, DeptID INT FOREIGN KEY REFERENCES Dept)
