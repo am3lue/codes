@@ -176,5 +176,7 @@ INSERT INTO Stations (station_id, station_name, owner_name, owner_phone) VALUES
 (100,'Tunduru Southern Station', 'Rachel Mpanju', 1100);
 
 UPDATE Stations
-SET owner_phone = 1000 + station_id
-WHERE station_id BETWEEN 1 AND 100;
+SET is_active = 'No'
+WHERE owner_phone BETWEEN 1037 AND 1045;
+
+SELECT * FROM Stations;
