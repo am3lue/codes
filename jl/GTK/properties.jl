@@ -1,4 +1,4 @@
-usng Gtk
+using Gtk
 
 #well ts time to set some proprties on the gtk
 win = GtkWindow("The time for properties of the window", 200, 200)

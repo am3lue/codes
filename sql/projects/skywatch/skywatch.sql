@@ -1,8 +1,8 @@
- -- Query to make a new database in the system
+-- Query to make a new database in the system
 CREATE DATABASE Skywatch;
 
  -- Well here is telling the system that am going to use Skuwatch DB
-use irini;
+use Skywatch;
 
 
  ------------------------------------ TABLES  ------------------------------------ 
@@ -491,3 +491,86 @@ VALUES
 
  ------------------------------------ 🫠  ------------------------------------ 
  
+ 
+------------------------------------ JOINS, SELECTIONS, SUB-QUERIES, ETC. ------------------------------------
+
+-- ALTER TABLE: Add a new column 'status' to the Sensors table
+ALTER TABLE Sensors
+ADD status VARCHAR(50);
+
+-- UPDATE: Populate the new 'status' column
+UPDATE Sensors
+SET status = 'Active'
+WHERE last_calibrated > '2025-02-01';
+
+UPDATE Sensors
+SET status = 'Needs Calibration'
+WHERE last_calibrated <= '2025-02-01';
+
+-- JOIN: Select all stations and their locations
+SELECT 
+    s.station_name, 
+    l.pleace_name, 
+    l.latitude, 
+    l.logitude
+FROM 
+    Stations s
+JOIN 
+    Locations l ON s.station_id = l.station_id;
+
+-- SELECTION with WHERE: Select all active stations
+SELECT 
+    station_name, 
+    owner_name, 
+    installed_date
+FROM 
+    Stations
+WHERE 
+    is_active = 'yes';
+
+-- GROUPING: Get the average, max, and min temperature for each sensor type
+SELECT 
+    s.sensor_type,
+    AVG(wr.temperature_c) AS avg_temp,
+    MAX(wr.temperature_c) AS max_temp,
+    MIN(wr.temperature_c) AS min_temp
+FROM 
+    Sensors s
+JOIN 
+    Weather_readings wr ON s.sensor_id = wr.sensor_id
+GROUP BY 
+    s.sensor_type;
+
+-- ORDER BY: Select all stations ordered by their installation date
+SELECT 
+    station_name, 
+    installed_date
+FROM 
+    Stations
+ORDER BY 
+    installed_date DESC;
+
+-- SUB-QUERY: Select sensors that have recorded temperatures above the average temperature
+SELECT 
+    sensor_id, 
+    sensor_type, 
+    model
+FROM 
+    Sensors
+WHERE 
+    sensor_id IN (
+        SELECT 
+            sensor_id 
+        FROM 
+            Weather_readings 
+        WHERE 
+            temperature_c > (SELECT AVG(temperature_c) FROM Weather_readings)
+    );
+
+-- OPERATION: Select weather readings and convert temperature from Celsius to Fahrenheit
+SELECT 
+    reading_id,
+    temperature_c,
+    (temperature_c * 9/5) + 32 AS temperature_f
+FROM 
+    Weather_readings;

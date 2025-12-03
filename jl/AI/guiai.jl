@@ -14,5 +14,6 @@ function gui()
 
     input = GtkEntry()
     set_gtk_property!(input, :text, "You: ")
+end
 
-    
+gui()
