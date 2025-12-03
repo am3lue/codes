@@ -494,11 +494,11 @@ VALUES
  
 ------------------------------------ JOINS, SELECTIONS, SUB-QUERIES, ETC. ------------------------------------
 
--- ALTER TABLE: Add a new column 'status' to the Sensors table
+-- ALTER TABLE: adding the status on the table
 ALTER TABLE Sensors
 ADD status VARCHAR(50);
 
--- UPDATE: Populate the new 'status' column
+-- UPDATE: well here we update some data
 UPDATE Sensors
 SET status = 'Active'
 WHERE last_calibrated > '2025-02-01';
@@ -507,7 +507,7 @@ UPDATE Sensors
 SET status = 'Needs Calibration'
 WHERE last_calibrated <= '2025-02-01';
 
--- JOIN: Select all stations and their locations
+-- JOIN: this is the full outer join
 SELECT 
     s.station_name, 
     l.pleace_name, 
@@ -518,7 +518,7 @@ FROM
 JOIN 
     Locations l ON s.station_id = l.station_id;
 
--- SELECTION with WHERE: Select all active stations
+-- SELECTION with WHERE: print ir show all the stations which are active
 SELECT 
     station_name, 
     owner_name, 
@@ -528,7 +528,7 @@ FROM
 WHERE 
     is_active = 'yes';
 
--- GROUPING: Get the average, max, and min temperature for each sensor type
+-- GROUPING: well herer we make a summary of the things
 SELECT 
     s.sensor_type,
     AVG(wr.temperature_c) AS avg_temp,
@@ -541,7 +541,7 @@ JOIN
 GROUP BY 
     s.sensor_type;
 
--- ORDER BY: Select all stations ordered by their installation date
+-- ORDER BY: herer we order the things according ti the dates
 SELECT 
     station_name, 
     installed_date
@@ -567,7 +567,7 @@ WHERE
             temperature_c > (SELECT AVG(temperature_c) FROM Weather_readings)
     );
 
--- OPERATION: Select weather readings and convert temperature from Celsius to Fahrenheit
+-- OPERATION: Select weather readings and convert temperature from Celsius to Fahrenheit just for eaasy translation
 SELECT 
     reading_id,
     temperature_c,
