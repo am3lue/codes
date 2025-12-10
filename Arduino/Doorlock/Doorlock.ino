@@ -10,7 +10,7 @@ const char* password = "Agpg@1984s";
 Servo doorServo;
 const int servoPin = 13;
 const int openAngle = 40;
-const int closeAngle = 180;
+const int closeAngle = 120;
 
 // ==== Web Server ====
 WebServer server(80);
@@ -26,7 +26,7 @@ void handleRoot() {
   </style>\
   </head>\
   <body>\
-  <h1>🚪 ESP32 WiFi Door Control</h1>\
+  <h1> ESP32 WiFi Door Control</h1>\
   <button onclick=\"location.href='/open'\">Open Door</button>\
   <button onclick=\"location.href='/close'\">Close Door</button>\
   </body>\
@@ -36,12 +36,12 @@ void handleRoot() {
 
 void handleOpen() {
   doorServo.write(openAngle);
-  server.send(200, "text/html", "<html><body><h2>Door Opened ✅</h2><a href='/'>Back</a></body></html>");
+  server.send(200, "text/html", "<html><body><h2>Door Opened </h2><a href='/'>Back</a></body></html>");
 }
 
 void handleClose() {
   doorServo.write(closeAngle);
-  server.send(200, "text/html", "<html><body><h2>Door Closed 🔒</h2><a href='/'>Back</a></body></html>");
+  server.send(200, "text/html", "<html><body><h2>Door Closed </h2><a href='/'>Back</a></body></html>");
 }
 
 void setup() {
