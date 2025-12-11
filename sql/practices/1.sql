@@ -261,6 +261,621 @@ ALTER COLUMN Salary DROP DEFAULT;
 ALTER TABLE Employees
 MODIFY COLUMN FirstName VARCHAR(100) NOT NULL;
 
+
 -- Remove NOT NULL constraint
 ALTER TABLE Employees
 MODIFY COLUMN FirstName VARCHAR(100) NULL;
+
+--------------- STORED PROCEDURES ----------------
+
+-- Simple Stored Procedure without parameters
+DELIMITER //
+CREATE PROCEDURE GetAllEmployees()
+BEGIN
+    SELECT * FROM Employees;
+END //
+DELIMITER ;
+
+-- Call the procedure
+CALL GetAllEmployees();
+
+-- Stored Procedure with IN parameters
+DELIMITER //
+CREATE PROCEDURE GetEmployeeByDepartment(IN dept_name VARCHAR(50))
+BEGIN
+    SELECT * FROM Employees WHERE Department = dept_name;
+END //
+DELIMITER ;
+
+-- Call the procedure with parameter
+CALL GetEmployeeByDepartment('IT');
+
+-- Stored Procedure with OUT parameters
+DELIMITER //
+CREATE PROCEDURE GetAverageSalary(OUT avg_salary DECIMAL(10,2))
+BEGIN
+    SELECT AVG(Salary) INTO avg_salary FROM Employees;
+END //
+DELIMITER ;
+
+-- Call procedure with OUT parameter
+CALL GetAverageSalary(@avg_salary);
+SELECT @avg_salary AS AverageSalary;
+
+-- Stored Procedure with INOUT parameters
+DELIMITER //
+CREATE PROCEDURE UpdateSalary(IN emp_id INT, INOUT new_salary DECIMAL(10,2))
+BEGIN
+    UPDATE Employees SET Salary = new_salary WHERE EmployeeID = emp_id;
+    SELECT Salary INTO new_salary FROM Employees WHERE EmployeeID = emp_id;
+END //
+DELIMITER ;
+
+-- Call procedure with INOUT parameter
+SET @salary = 70000;
+CALL UpdateSalary(1, @salary);
+SELECT @salary AS UpdatedSalary;
+
+-- Stored Procedure with error handling
+DELIMITER //
+CREATE PROCEDURE AddEmployee(
+    IN emp_id INT,
+    IN fname VARCHAR(50),
+    IN lname VARCHAR(50),
+    IN dept VARCHAR(50),
+    IN sal DECIMAL(10,2)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'Error occurred while adding employee' AS ErrorMessage;
+    END;
+    
+    START TRANSACTION;
+    INSERT INTO Employees (EmployeeID, FirstName, LastName, Department, Salary) 
+    VALUES (emp_id, fname, lname, dept, sal);
+    COMMIT;
+    
+    SELECT 'Employee added successfully' AS SuccessMessage;
+END //
+DELIMITER ;
+
+-- Call procedure with error handling
+CALL AddEmployee(6, 'Sarah', 'Wilson', 'HR', 52000);
+
+--------------- FUNCTIONS ----------------
+
+-- Simple function to calculate bonus
+DELIMITER //
+CREATE FUNCTION CalculateBonus(base_salary DECIMAL(10,2)) 
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    RETURN base_salary * 0.10;
+END //
+DELIMITER ;
+
+-- Use function in query
+SELECT EmployeeID, FirstName, LastName, Salary, 
+       CalculateBonus(Salary) AS Bonus, 
+       (Salary + CalculateBonus(Salary)) AS TotalCompensation 
+FROM Employees;
+
+-- Function with multiple parameters
+DELIMITER //
+CREATE FUNCTION GetFullName(first_name VARCHAR(50), last_name VARCHAR(50)) 
+RETURNS VARCHAR(100)
+DETERMINISTIC
+BEGIN
+    RETURN CONCAT(first_name, ' ', last_name);
+END //
+DELIMITER ;
+
+-- Use function to get full names
+SELECT EmployeeID, GetFullName(FirstName, LastName) AS FullName, Department 
+FROM Employees;
+
+--------------- TRIGGERS ----------------
+
+-- Create Departments table first (referenced in triggers)
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY,
+    DepartmentName VARCHAR(50)
+);
+
+INSERT INTO Departments VALUES 
+(1, 'HR'),
+(2, 'IT'),
+(3, 'Sales'),
+(4, 'Marketing');
+
+-- Add foreign key constraint
+ALTER TABLE Employees 
+ADD CONSTRAINT fk_employee_department 
+FOREIGN KEY (Department) REFERENCES Departments(DepartmentID);
+
+-- BEFORE INSERT Trigger
+DELIMITER //
+CREATE TRIGGER before_employee_insert
+BEFORE INSERT ON Employees
+FOR EACH ROW
+BEGIN
+    -- Auto-generate EmployeeID if not provided
+    IF NEW.EmployeeID IS NULL THEN
+        SET NEW.EmployeeID = (SELECT COALESCE(MAX(EmployeeID), 0) + 1 FROM Employees);
+    END IF;
+    
+    -- Ensure salary is not negative
+    IF NEW.Salary < 0 THEN
+        SET NEW.Salary = 0;
+    END IF;
+END //
+DELIMITER ;
+
+-- AFTER UPDATE Trigger
+DELIMITER //
+CREATE TRIGGER after_employee_update
+AFTER UPDATE ON Employees
+FOR EACH ROW
+BEGIN
+    -- Log salary changes to an audit table
+    INSERT INTO Salary_Audit (EmployeeID, OldSalary, NewSalary, ChangeDate)
+    VALUES (OLD.EmployeeID, OLD.Salary, NEW.Salary, NOW());
+END //
+DELIMITER ;
+
+-- Create audit table for triggers
+CREATE TABLE Salary_Audit (
+    AuditID INT AUTO_INCREMENT PRIMARY KEY,
+    EmployeeID INT,
+    OldSalary DECIMAL(10,2),
+    NewSalary DECIMAL(10,2),
+    ChangeDate DATETIME
+);
+
+-- BEFORE DELETE Trigger
+DELIMITER //
+CREATE TRIGGER before_employee_delete
+BEFORE DELETE ON Employees
+FOR EACH ROW
+BEGIN
+    -- Prevent deletion of employees in IT department
+    IF OLD.Department = 'IT' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot delete IT department employees';
+    END IF;
+END //
+DELIMITER ;
+
+-- AFTER INSERT Trigger for Department Statistics
+DELIMITER //
+CREATE TRIGGER after_employee_insert_stats
+AFTER INSERT ON Employees
+FOR EACH ROW
+BEGIN
+    UPDATE DepartmentStats 
+    SET EmployeeCount = EmployeeCount + 1 
+    WHERE DepartmentID = NEW.Department;
+END //
+DELIMITER ;
+
+-- Create Department Statistics table
+CREATE TABLE DepartmentStats (
+    DepartmentID INT PRIMARY KEY,
+    DepartmentName VARCHAR(50),
+    EmployeeCount INT DEFAULT 0,
+    TotalSalary DECIMAL(12,2) DEFAULT 0
+);
+
+INSERT INTO DepartmentStats (DepartmentID, DepartmentName) 
+SELECT DepartmentID, DepartmentName FROM Departments;
+
+-- BEFORE UPDATE Trigger for complex validation
+DELIMITER //
+CREATE TRIGGER before_employee_salary_update
+BEFORE UPDATE ON Employees
+FOR EACH ROW
+BEGIN
+    DECLARE avg_salary DECIMAL(10,2);
+    DECLARE max_increase DECIMAL(10,2);
+    
+    -- Get average salary for the department
+    SELECT AVG(Salary) INTO avg_salary 
+    FROM Employees WHERE Department = NEW.Department;
+    
+    -- Calculate maximum allowed increase (20% of current salary)
+    SET max_increase = OLD.Salary * 0.20;
+    
+    -- Check if increase is too high
+    IF NEW.Salary > (OLD.Salary + max_increase) THEN
+        SET NEW.Salary = OLD.Salary + max_increase;
+    END IF;
+END //
+DELIMITER ;
+
+--------------- CURSORS ----------------
+
+-- Simple Cursor Example
+DELIMITER //
+CREATE PROCEDURE ProcessEmployees()
+BEGIN
+    -- Declare variables
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE emp_id INT;
+    DECLARE emp_firstname VARCHAR(50);
+    DECLARE emp_lastname VARCHAR(50);
+    DECLARE emp_dept VARCHAR(50);
+    DECLARE emp_salary DECIMAL(10,2);
+    
+    -- Declare cursor
+    DECLARE emp_cursor CURSOR FOR 
+        SELECT EmployeeID, FirstName, LastName, Department, Salary 
+        FROM Employees;
+    
+    -- Declare continue handler
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    -- Create temporary table for results
+    CREATE TEMPORARY TABLE IF NOT EXISTS EmployeeSummary (
+        EmployeeID INT,
+        FullName VARCHAR(100),
+        Department VARCHAR(50),
+        Salary DECIMAL(10,2),
+        SalaryGrade VARCHAR(20)
+    );
+    
+    -- Open cursor
+    OPEN emp_cursor;
+    
+    -- Loop through cursor
+    read_loop: LOOP
+        FETCH emp_cursor INTO emp_id, emp_firstname, emp_lastname, emp_dept, emp_salary;
+        
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Insert processed data into summary table
+        INSERT INTO EmployeeSummary (EmployeeID, FullName, Department, Salary, SalaryGrade)
+        VALUES (
+            emp_id, 
+            CONCAT(emp_firstname, ' ', emp_lastname), 
+            emp_dept, 
+            emp_salary,
+            CASE 
+                WHEN emp_salary > 60000 THEN 'High'
+                WHEN emp_salary > 55000 THEN 'Medium'
+                ELSE 'Low'
+            END
+        );
+    END LOOP;
+    
+    -- Close cursor
+    CLOSE emp_cursor;
+    
+    -- Return results
+    SELECT * FROM EmployeeSummary ORDER BY Salary DESC;
+    
+    -- Clean up
+    DROP TEMPORARY TABLE EmployeeSummary;
+END //
+DELIMITER ;
+
+-- Call cursor procedure
+CALL ProcessEmployees();
+
+-- Cursor with multiple result sets
+DELIMITER //
+CREATE PROCEDURE GetDepartmentStatistics()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE dept_id INT;
+    DECLARE emp_count INT;
+    DECLARE avg_sal DECIMAL(10,2);
+    
+    -- Cursor for department statistics
+    DECLARE dept_cursor CURSOR FOR 
+        SELECT d.DepartmentID, COUNT(e.EmployeeID), AVG(e.Salary)
+        FROM Departments d
+        LEFT JOIN Employees e ON d.DepartmentID = e.Department
+        GROUP BY d.DepartmentID;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    CREATE TEMPORARY TABLE IF NOT EXISTS DeptStats (
+        DepartmentID INT,
+        EmployeeCount INT,
+        AverageSalary DECIMAL(10,2)
+    );
+    
+    OPEN dept_cursor;
+    
+    dept_loop: LOOP
+        FETCH dept_cursor INTO dept_id, emp_count, avg_sal;
+        
+        IF done THEN
+            LEAVE dept_loop;
+        END IF;
+        
+        INSERT INTO DeptStats VALUES (dept_id, emp_count, avg_sal);
+    END LOOP;
+    
+    CLOSE dept_cursor;
+    
+    SELECT * FROM DeptStats ORDER BY AverageSalary DESC;
+    DROP TEMPORARY TABLE DeptStats;
+END //
+DELIMITER ;
+
+--------------- TRANSACTIONS ----------------
+
+-- Basic transaction example
+START TRANSACTION;
+
+INSERT INTO Employees (EmployeeID, FirstName, LastName, Department, Salary) 
+VALUES (7, 'Tom', 'Harris', 'Sales', 56000);
+
+UPDATE Employees SET Salary = Salary * 1.05 WHERE Department = 'Sales';
+
+-- Commit the transaction
+COMMIT;
+
+-- Transaction with rollback
+START TRANSACTION;
+
+INSERT INTO Employees (EmployeeID, FirstName, LastName, Department, Salary) 
+VALUES (8, 'Lisa', 'Davis', 'IT', 65000);
+
+-- If something goes wrong, rollback
+ROLLBACK;
+
+-- Transaction with savepoints
+START TRANSACTION;
+
+INSERT INTO Employees (EmployeeID, FirstName, LastName, Department, Salary) 
+VALUES (9, 'Mike', 'Chen', 'HR', 53000);
+
+SAVEPOINT after_first_insert;
+
+INSERT INTO Employees (EmployeeID, FirstName, LastName, Department, Salary) 
+VALUES (10, 'Anna', 'Garcia', 'Marketing', 54000);
+
+-- Rollback to savepoint
+ROLLBACK TO after_first_insert;
+
+COMMIT;
+
+--------------- VARIABLES ----------------
+
+-- Session variables
+SET @employee_count = (SELECT COUNT(*) FROM Employees);
+SELECT @employee_count AS TotalEmployees;
+
+SET @dept_name = 'IT';
+SET @avg_salary = (SELECT AVG(Salary) FROM Employees WHERE Department = @dept_name);
+SELECT @avg_salary AS AverageITSalary;
+
+-- Local variables in procedures
+DELIMITER //
+CREATE PROCEDURE CalculateDepartmentStats(IN dept_name VARCHAR(50))
+BEGIN
+    DECLARE emp_count INT DEFAULT 0;
+    DECLARE total_salary DECIMAL(12,2) DEFAULT 0;
+    DECLARE avg_salary DECIMAL(10,2) DEFAULT 0;
+    
+    SELECT COUNT(*), SUM(Salary), AVG(Salary) 
+    INTO emp_count, total_salary, avg_salary
+    FROM Employees 
+    WHERE Department = dept_name;
+    
+    SELECT 
+        dept_name AS Department,
+        emp_count AS EmployeeCount,
+        total_salary AS TotalSalary,
+        avg_salary AS AverageSalary;
+END //
+DELIMITER ;
+
+CALL CalculateDepartmentStats('IT');
+
+--------------- DYNAMIC SQL ----------------
+
+-- Dynamic SQL with EXECUTE
+DELIMITER //
+CREATE PROCEDURE DynamicQuery(IN table_name VARCHAR(50), IN column_name VARCHAR(50))
+BEGIN
+    SET @sql = CONCAT('SELECT ', column_name, ' FROM ', table_name);
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END //
+DELIMITER ;
+
+-- Call dynamic query
+CALL DynamicQuery('Employees', 'FirstName, LastName');
+
+-- Dynamic SQL with parameters
+DELIMITER //
+CREATE PROCEDURE FilterAndSort(
+    IN filter_column VARCHAR(50),
+    IN filter_value VARCHAR(50),
+    IN sort_column VARCHAR(50),
+    IN sort_order VARCHAR(4)
+)
+BEGIN
+    SET @sql = CONCAT(
+        'SELECT * FROM Employees WHERE ', 
+        filter_column, ' = ? ORDER BY ', 
+        sort_column, ' ', sort_order
+    );
+    
+    PREPARE stmt FROM @sql;
+    SET @param = filter_value;
+    EXECUTE stmt USING @param;
+    DEALLOCATE PREPARE stmt;
+END //
+DELIMITER ;
+
+CALL FilterAndSort('Department', 'IT', 'Salary', 'DESC');
+
+--------------- ERROR HANDLING ----------------
+
+-- Error handling with custom error messages
+DELIMITER //
+CREATE PROCEDURE SafeEmployeeInsert(
+    IN emp_id INT,
+    IN fname VARCHAR(50),
+    IN lname VARCHAR(50),
+    IN dept VARCHAR(50),
+    IN sal DECIMAL(10,2),
+    OUT result_message VARCHAR(100)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR 1062 -- Duplicate key error
+    BEGIN
+        SET result_message = 'Error: Employee ID already exists';
+        ROLLBACK;
+    END;
+    
+    DECLARE EXIT HANDLER FOR 1452 -- Foreign key constraint
+    BEGIN
+        SET result_message = 'Error: Invalid department';
+        ROLLBACK;
+    END;
+    
+    DECLARE EXIT HANDLER FOR 1264 -- Out of range value
+    BEGIN
+        SET result_message = 'Error: Salary value out of range';
+        ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+    INSERT INTO Employees (EmployeeID, FirstName, LastName, Department, Salary) 
+    VALUES (emp_id, fname, lname, dept, sal);
+    COMMIT;
+    
+    SET result_message = 'Employee inserted successfully';
+END //
+DELIMITER ;
+
+-- Test error handling
+CALL SafeEmployeeInsert(11, 'Test', 'User', 'InvalidDept', 50000, @result);
+SELECT @result;
+
+--------------- VIEWS ----------------
+
+-- Simple view
+CREATE VIEW EmployeeDetails AS
+SELECT 
+    EmployeeID,
+    CONCAT(FirstName, ' ', LastName) AS FullName,
+    Department,
+    Salary,
+    CalculateBonus(Salary) AS Bonus
+FROM Employees;
+
+-- Use the view
+SELECT * FROM EmployeeDetails WHERE Department = 'IT';
+
+-- Complex view with join
+CREATE VIEW DepartmentSummary AS
+SELECT 
+    d.DepartmentID,
+    d.DepartmentName,
+    COUNT(e.EmployeeID) AS EmployeeCount,
+    AVG(e.Salary) AS AverageSalary,
+    SUM(e.Salary) AS TotalSalary,
+    MAX(e.Salary) AS HighestSalary,
+    MIN(e.Salary) AS LowestSalary
+FROM Departments d
+LEFT JOIN Employees e ON d.DepartmentID = e.Department
+GROUP BY d.DepartmentID, d.DepartmentName;
+
+-- Use the view
+SELECT * FROM DepartmentSummary ORDER BY AverageSalary DESC;
+
+-- Updatable view
+CREATE VIEW ITEmployees AS
+SELECT EmployeeID, FirstName, LastName, Salary
+FROM Employees
+WHERE Department = 'IT';
+
+-- Update through view
+UPDATE ITEmployees SET Salary = Salary * 1.10 WHERE EmployeeID = 2;
+
+-- Drop view
+DROP VIEW IF EXISTS EmployeeDetails;
+
+--------------- INDEXES ----------------
+
+-- Create index on single column
+CREATE INDEX idx_department ON Employees(Department);
+
+-- Create index on multiple columns
+CREATE INDEX idx_dept_salary ON Employees(Department, Salary DESC);
+
+-- Create unique index
+CREATE UNIQUE INDEX idx_employee_email ON Employees(Email);
+
+-- Create full-text index (for text search)
+CREATE FULLTEXT INDEX idx_employee_name ON Employees(FirstName, LastName);
+
+-- Use full-text search
+SELECT * FROM Employees 
+WHERE MATCH(FirstName, LastName) AGAINST('John Smith' IN BOOLEAN MODE);
+
+-- Drop index
+DROP INDEX idx_department ON Employees;
+
+--------------- SUBQUERIES AND CTEs ----------------
+
+-- Subquery examples
+SELECT * FROM Employees 
+WHERE Salary > (SELECT AVG(Salary) FROM Employees);
+
+SELECT Department, (SELECT COUNT(*) FROM Employees e2 WHERE e2.Department = e1.Department) AS EmployeeCount
+FROM Employees e1
+GROUP BY Department;
+
+-- Common Table Expressions (CTEs)
+WITH DepartmentStats AS (
+    SELECT 
+        Department,
+        COUNT(*) AS EmployeeCount,
+        AVG(Salary) AS AverageSalary
+    FROM Employees
+    GROUP BY Department
+),
+HighSalaryEmployees AS (
+    SELECT EmployeeID, FirstName, LastName, Salary
+    FROM Employees
+    WHERE Salary > 60000
+)
+SELECT 
+    d.Department,
+    h.FirstName,
+    h.LastName,
+    h.Salary,
+    d.AverageSalary
+FROM HighSalaryEmployees h
+JOIN DepartmentStats d ON h.Department = d.Department
+ORDER BY h.Salary DESC;
+
+-- Recursive CTE
+WITH RECURSIVE EmployeeHierarchy AS (
+    -- Base case: top-level employees (no manager)
+    SELECT EmployeeID, FirstName, LastName, Department, Salary, 1 AS Level
+    FROM Employees
+    WHERE EmployeeID = 1
+    
+    UNION ALL
+    
+    -- Recursive case
+    SELECT e.EmployeeID, e.FirstName, e.LastName, e.Department, e.Salary, eh.Level + 1
+    FROM Employees e
+    JOIN EmployeeHierarchy eh ON e.EmployeeID > eh.EmployeeID
+    WHERE eh.Level < 5 -- Prevent infinite recursion
+)
+SELECT * FROM EmployeeHierarchy ORDER BY Level, EmployeeID;
+
+
