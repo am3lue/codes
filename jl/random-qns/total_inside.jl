@@ -1,5 +1,5 @@
 function group_cum(values, group_id)
-    sums::Vector = []
+    sums = []
     for i in 1: 1 :sizeof(values)
         if occursin(group_id[i], sums)
             sums[group_id[i]] += values[i]
