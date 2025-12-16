@@ -12,6 +12,8 @@ int main() {
         printf("Do you want to enter more marks? (y/n): ");
         scanf(" %c", &choice);                              // space before %c to clear newline
     } while(choice == 'y' || choice == 'Y');
+
+    
     printf("Average marks = %.2f\n", sum / count);
     return 0;
 }

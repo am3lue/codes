@@ -12,4 +12,4 @@ if palindrome(readline())
     printstyled("Its Palindome! ", color = :blue)
 else
     printstyled("Its not Palindome! ", color = :red)
-endq
+end
