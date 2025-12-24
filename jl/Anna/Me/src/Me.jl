@@ -124,6 +124,8 @@ function run_tracker()
     println(gray_style, "(Next start: $(cycle_stats.next_start_date))", reset)
     
     println()
+
+    readline()
 end
 
 end
